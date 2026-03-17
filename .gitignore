@@ -1,8 +1,12 @@
+# =============================================================================
+# R STANDARD IGNORES
+# =============================================================================
+
 # History files
 .Rhistory
 .Rapp.history
 
-# Session Data files
+# Session data files
 .RData
 .RDataTmp
 
@@ -21,11 +25,11 @@
 # RStudio files
 .Rproj.user/
 
-# produced vignettes
+# Produced vignettes
 vignettes/*.html
 vignettes/*.pdf
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+# OAuth2 token
 .httr-oauth
 
 # knitr and R markdown default cache directories
@@ -36,14 +40,55 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
-# R Environment Variables
-.Renviron
-
 # pkgdown site
 docs/
 
-# translation temp files
+# Translation temp files
 po/*~
 
-# RStudio Connect folder
+# =============================================================================
+# CREDENTIALS — NEVER COMMIT THESE
+# =============================================================================
+
+# Census API key and all other environment variables
+.Renviron
+
+# =============================================================================
+# SHINY APP
+# =============================================================================
+
+# Cached Census API responses — regenerates automatically on first run
+# Can be large (several MB per county) and is machine-specific
+shiny-migration-explorer/data/cache/
+
+# RStudio Connect / shinyapps.io deployment metadata
+# Contains account tokens — do not commit
 rsconnect/
+
+# =============================================================================
+# LARGE OUTPUT FILES (optional — remove lines to commit outputs)
+# =============================================================================
+
+# Uncomment these if you do NOT want to commit map outputs to GitHub
+# (they are currently committed so README images display correctly)
+# tuolumne-migration/outputs/*.png
+# tuolumne-migration/outputs/*.html
+
+# =============================================================================
+# SYSTEM FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
