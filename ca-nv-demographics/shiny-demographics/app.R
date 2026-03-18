@@ -7,12 +7,10 @@
 # Run with: shiny::runApp("ca-nv-demographics/shiny-demographics")
 #
 # DEPENDS ON: ca-nv-demographics/explore.R
-# Run explore.R first to build the cache files, OR
-# uncomment the source() line below.
+# Run explore.R first to build the cache files.
 #
 # Tooltip behavior:
-#   Hover = plain text (tract name, county, value)
-#   Click = styled HTML popup (formatted value with color)
+#   Click a tract = styled HTML popup with tract name, county, value
 # =============================================================================
 
 # source(here::here("ca-nv-demographics", "explore.R"))
@@ -315,9 +313,7 @@ ui <- page_navbar(
           "Census tract level. ACS estimates carry",
           "margins of error \u2014 see About tab.",
           tags$br(), tags$br(),
-          "Hover over a tract for quick info.",
-          tags$br(),
-          "Click a tract for full detail.",
+          "Click any tract for detail.",
           style = "color: #555555; font-size: 0.75em;"
         )
       ),
@@ -406,11 +402,8 @@ ui <- page_navbar(
             style = "color: #cccccc; margin: 0; padding-left: 18px;",
             tags$li("Select a variable and geography from the sidebar"),
             tags$li("Click Update Map to render"),
-            tags$li(
-              "Drag the legend handles to filter by value range"
-            ),
-            tags$li("Hover over a tract for a quick summary"),
-            tags$li("Click a tract for a detailed styled popup"),
+            tags$li("Drag the legend handles to filter by value range"),
+            tags$li("Click any tract for name, county, and value detail"),
             tags$li(
               "Use the camera icon (top right of map) to save a PNG"
             )
@@ -651,7 +644,7 @@ server <- function(input, output, session) {
     
     pal_fn <- get_palette_fn(input$selected_palette)
     
-    # Cap rent burden outliers before color scale calculation
+    # Cap rent burden outliers before color scale
     if (col == "rent_burden") {
       data <- data |>
         dplyr::mutate(!!col := pmin(.data[[col]], 150))
@@ -678,42 +671,16 @@ server <- function(input, output, session) {
       }
     )
     
-    # Determine value type once — scalar logicals
-    is_dollar <- grepl("\\$|Income|Rent",   meta$label)
+    is_dollar <- grepl("\\$|Income|Rent", meta$label)
     is_pct    <- grepl(
       "%|Rate|Born|Burden|Occupied|Vacancy|Moved|bach",
       meta$label
     )
     
-    # Build both tooltip columns inside mutate
-    # tooltip (hover) = HTML with <br> line breaks — plain text \n is invisible
-    # popup   (click) = richer styled HTML
+    # Build click popup column — styled HTML rendered on click
     data_mapped <- data |>
       dplyr::mutate(
-        
-        # --- HOVER TOOLTIP: quick summary ---
-        tooltip_plain = {
-          raw_val <- .data[[col]]
-          
-          formatted_val <- dplyr::case_when(
-            is.na(raw_val) ~ "No data",
-            is_dollar      ~ paste0(
-              "$", format(round(raw_val), big.mark = ",")
-            ),
-            is_pct         ~ paste0(round(raw_val, 1), "%"),
-            TRUE           ~ as.character(round(raw_val, 1))
-          )
-          
-          # FIX: use <br> not \n — mapgl renders tooltips as HTML
-          paste0(
-            tract_name, "<br>",
-            county, ", ", state, "<br>",
-            meta$label, ": <strong>", formatted_val, "</strong>"
-          )
-        },
-        
-        # --- CLICK POPUP: styled detail card ---
-        tooltip_html = {
+        popup_html = {
           raw_val <- .data[[col]]
           
           formatted_val <- dplyr::case_when(
@@ -758,8 +725,7 @@ server <- function(input, output, session) {
         fill_color         = color_scale$expression,
         fill_opacity       = 0.75,
         fill_outline_color = "rgba(0,0,0,0.08)",
-        tooltip            = "tooltip_plain",   # hover
-        popup              = "tooltip_html"     # click
+        popup              = "popup_html"   # click only — hover removed
       ) |>
       add_legend(
         meta$label,
@@ -825,7 +791,6 @@ server <- function(input, output, session) {
       sf::st_drop_geometry() |>
       dplyr::filter(!is.na(.data[[col]]))
     
-    # Cap at 99th percentile
     q99 <- quantile(plot_data[[col]], 0.99, na.rm = TRUE)
     plot_data <- plot_data |> dplyr::filter(.data[[col]] <= q99)
     
@@ -962,8 +927,8 @@ server <- function(input, output, session) {
         fill     = NULL,
         caption  = paste0(
           "Source: U.S. Census Bureau ACS 2018\u20132022\n",
-          "Rent burden = annual gross rent as % of household income. ",
-          "Tracts >120% excluded."
+          "Rent burden = annual gross rent as % of ",
+          "household income. Tracts >120% excluded."
         )
       ) +
       
