@@ -12,8 +12,8 @@
 # Pre-build FIPS lookup once at source() time so make_neighbor_table()
 # doesn't rebuild it on every call
 .fips_lookup <- tidycensus::fips_codes |>
-  mutate(full_fips = paste0(state_code, county_code)) |>
-  select(full_fips, county_name = county)
+  dplyr::mutate(full_fips = paste0(state_code, county_code)) |>
+  dplyr::select(full_fips, county_name = county)
 
 
 # =============================================================================

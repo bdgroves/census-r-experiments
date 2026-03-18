@@ -1,16 +1,6 @@
 # =============================================================================
 # MIGRATION EXPLORER — SHINY APP
 # =============================================================================
-# Interactive county-to-county migration explorer using Census ACS data.
-# Users select any US county and get flow maps, charts, and summary stats.
-#
-# Run with: shiny::runApp("shiny-migration-explorer")
-#
-# Working directory note: when launched via runApp("shiny-migration-explorer"),
-# Shiny sets wd to the app folder automatically. All file.path() calls
-# resolve relative to shiny-migration-explorer/ — do NOT use here() inside
-# this app as it would resolve from the project root instead.
-# =============================================================================
 
 library(shiny)
 library(bslib)
@@ -24,43 +14,76 @@ library(ggplot2)
 library(plotly)
 library(DT)
 library(waiter)
-library(shinyjs)        # FIX 1: added — needed for shinyjs::delay()
-# NOTE: here is intentionally NOT loaded in app.R
-# It resolves from project root, not app folder — use file.path() instead
+library(shinyjs)
 
-# Load helper functions (paths relative to app folder)
+# =============================================================================
+# CENSUS API KEY SETUP
+# =============================================================================
+# Non-fatal — app loads even without key, cached counties still work
+
+local({
+  key <- Sys.getenv("CENSUS_API_KEY")
+  if (nchar(key) == 0) key <- Sys.getenv("TIDYCENSUS_API_KEY")
+  if (nchar(key) > 0) {
+    tidycensus::census_api_key(key)
+    message("Census API key set.")
+  } else {
+    message("No Census API key found — cached counties only.")
+  }
+})
+
+# =============================================================================
+# LOAD HELPER FUNCTIONS
+# =============================================================================
+# Each source() wrapped individually so we can see exactly which file fails
+
+message("Loading R/get_migration.R ...")
 source("R/get_migration.R")
-source("R/make_maps.R")
-source("R/make_charts.R")
-source("R/utils.R")
+message("OK")
 
-# Confirm working directory and create cache folder
-message("App working directory: ", getwd())
+message("Loading R/make_maps.R ...")
+source("R/make_maps.R")
+message("OK")
+
+message("Loading R/make_charts.R ...")
+source("R/make_charts.R")
+message("OK")
+
+message("Loading R/utils.R ...")
+source("R/utils.R")
+message("OK")
+
+# =============================================================================
+# WORKING DIRECTORY + CACHE
+# =============================================================================
+
+message("Working directory: ", getwd())
 
 cache_dir <- file.path("data", "cache")
 if (!dir.exists(cache_dir)) {
   dir.create(cache_dir, recursive = TRUE)
-  message("Created cache directory: ", normalizePath(cache_dir))
-} else {
-  message("Cache ready: ", normalizePath(cache_dir))
 }
+message("Cache dir: ", normalizePath(cache_dir))
 
 # =============================================================================
 # STATE AND COUNTY REFERENCE DATA
 # =============================================================================
 
 county_lookup <- tidycensus::fips_codes |>
-  mutate(
+  dplyr::mutate(
     full_fips = paste0(state_code, county_code),
     display   = paste0(county, ", ", state)
   ) |>
-  filter(!state %in% c("PR", "UM", "VI", "GU", "AS", "MP")) |>
-  arrange(state_name, county)
+  dplyr::filter(!state %in% c("PR", "UM", "VI", "GU", "AS", "MP")) |>
+  dplyr::arrange(state_name, county)
 
 state_choices <- county_lookup |>
-  distinct(state_name, state) |>
-  arrange(state_name) |>
+  dplyr::distinct(state_name, state) |>
+  dplyr::arrange(state_name) |>
   tibble::deframe()
+
+message("County lookup built: ", nrow(county_lookup), " rows")
+message("State choices built: ", length(state_choices), " states")
 
 
 # =============================================================================
