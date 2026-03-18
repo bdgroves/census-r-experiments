@@ -92,3 +92,5 @@ Desktop.ini
 
 # Linux
 *~
+# Add to existing .gitignore
+ca-nv-demographics/shiny-demographics/data/cache/

@@ -224,11 +224,14 @@ ui <- page_navbar(
         hr(style = "border-color: #2a2a3a;"),
         
         tags$p(
-          "Data: U.S. Census Bureau ACS 5-Year Estimates.",
+          "Data: U.S. Census Bureau ACS 2016\u20132020.",
           tags$br(),
-          "Note: Most county-level migration estimates carry high",
-          "margins of error. Interpret directional patterns rather",
-          "than exact counts.",
+          "Migration flows are survey estimates.",
+          "Small flows (",
+          tags$i("< 50 people"),
+          ") may represent 1\u20132 survey respondents.",
+          "Zero values may reflect sample gaps.",
+          "See the About tab for full data quality notes.",
           style = "color: #555555; font-size: 0.75em;"
         )
       ),
@@ -383,12 +386,13 @@ ui <- page_navbar(
         style = "color: #cccccc;"
       ),
       
+      # ---- DATA SECTION ----
       tags$h4("Data", style = "color: white; margin-top: 24px;"),
       tags$p(
-        "ACS 5-Year County-to-County Migration Flow Estimates, accessed",
-        "via the tidycensus R package. ",
+        "ACS 5-Year County-to-County Migration Flow Estimates,",
+        "accessed via the tidycensus R package.",
         tags$a("Census migration documentation \u2192",
-               href = paste0(
+               href   = paste0(
                  "https://www.census.gov/topics/population/migration/",
                  "guidance/county-to-county-migration-flows.html"
                ),
@@ -397,61 +401,167 @@ ui <- page_navbar(
         style = "color: #cccccc;"
       ),
       
-      tags$h4("Data Quality Note",
-              style = "color: white; margin-top: 24px;"),
-      div(class = "story-card",
-          tags$p(
-            "Most county-level ACS migration estimates carry margins of",
-            "error exceeding 50% of the estimate \u2014 normal for",
-            "small-geography migration data. Interpret directional patterns",
-            "across multiple counties rather than any single number.",
-            style = "color: #cccccc; margin: 0;"
-          )
+      tags$p(
+        tags$b("Current data: ", style = "color: white;"),
+        "ACS 2016\u20132020 (5-year estimates). ",
+        "County-to-county migration flows for 2021 and later ",
+        "have not yet been released by the Census Bureau as of early 2026. ",
+        "The main ACS tables (income, education, etc.) released January 2026, ",
+        "but migration flows are a supplemental product released separately, ",
+        "typically 6\u201312 months later. ",
+        "This app will be updated when newer county-level flows become available.",
+        style = "color: #aaaaaa; font-size: 0.9em;"
       ),
       
+      # ---- IMPORTANT DATA QUALITY SECTION ----
+      tags$h4("Understanding the Data \u2014 Please Read",
+              style = "color: white; margin-top: 24px;"),
+      
+      div(
+        class = "story-card",
+        style = "border-left-color: #cc4c02;",
+        tags$b("\u26a0\ufe0f The ACS is a Survey, Not a Census",
+               style = "color: #cc4c02;"),
+        tags$p(
+          "The American Community Survey samples approximately 3.5 million",
+          "households per year \u2014 about 12% of all US households.",
+          "Over a 5-year period, roughly 15\u201317 million households",
+          "are surveyed. This means:",
+          style = "color: #cccccc; margin: 8px 0 4px 0;"
+        ),
+        tags$ul(
+          style = "color: #cccccc; margin: 4px 0;",
+          tags$li(
+            "Small migration flows may represent just 1\u20132 survey",
+            "respondents whose responses are statistically",
+            "\u201cweighted up\u201d to represent the full population."
+          ),
+          tags$li(
+            "A flow showing zero people does not necessarily mean",
+            "nobody made that move \u2014 it may mean nobody in the",
+            "sample made that move. Zero is the most misleading",
+            "number in migration data."
+          ),
+          tags$li(
+            "94% of individual county-level flow estimates in a",
+            "typical small county have margins of error exceeding",
+            "50% of the estimate itself."
+          )
+        )
+      ),
+      
+      tags$br(),
+      
+      div(
+        class = "story-card",
+        style = "border-left-color: #7b2d8b;",
+        tags$b("\u2705 What You CAN Rely On",
+               style = "color: #7b2d8b;"),
+        tags$p(
+          "Despite high individual uncertainty, patterns across",
+          "multiple counties are meaningful:",
+          style = "color: #cccccc; margin: 8px 0 4px 0;"
+        ),
+        tags$ul(
+          style = "color: #cccccc; margin: 4px 0;",
+          tags$li(
+            "If 8 of 8 Bay Area counties all show net migration",
+            "toward a county, that directional signal is real",
+            "even if the exact counts are uncertain."
+          ),
+          tags$li(
+            "Large flows (200+ people) with low margins of error",
+            "are generally reliable."
+          ),
+          tags$li(
+            "The reliability column in the Full Migration Data table",
+            "flags each estimate: \u2705 reliable, \u26a0\ufe0f caution,",
+            "\u274c unreliable."
+          )
+        )
+      ),
+      
+      tags$br(),
+      
+      div(
+        class = "story-card",
+        style = "border-left-color: #444466;",
+        tags$b("\U0001F4CA How to Read the MOE Column",
+               style = "color: #aaaaaa;"),
+        tags$p(
+          "MOE = Margin of Error at 90% confidence.",
+          "An estimate of 138 with MOE of 134 means the true value",
+          "is somewhere between 4 and 272 \u2014 not a precise count.",
+          "CV (coefficient of variation) = MOE \u00f7 Estimate.",
+          "CV under 15% = high confidence.",
+          "CV over 50% = treat as directional signal only.",
+          style = "color: #aaaaaa; margin: 6px 0 0 0; font-size: 0.9em;"
+        )
+      ),
+      
+      # ---- BUILT WITH ----
       tags$h4("Built With", style = "color: white; margin-top: 24px;"),
       tags$ul(
         style = "color: #cccccc;",
         tags$li(
           tags$a("tidycensus",
-                 href = "https://walker-data.com/tidycensus/",
+                 href   = "https://walker-data.com/tidycensus/",
                  target = "_blank", style = "color: #7b2d8b;"),
           " \u2014 Census API (Kyle Walker)"
         ),
         tags$li(
           tags$a("Shiny + bslib",
-                 href = "https://shiny.posit.co/",
+                 href   = "https://shiny.posit.co/",
                  target = "_blank", style = "color: #7b2d8b;"),
           " \u2014 web app framework"
         ),
         tags$li(
           tags$a("leaflet",
-                 href = "https://rstudio.github.io/leaflet/",
+                 href   = "https://rstudio.github.io/leaflet/",
                  target = "_blank", style = "color: #7b2d8b;"),
           " \u2014 interactive maps"
         ),
         tags$li(
           tags$a("plotly",
-                 href = "https://plotly.com/r/",
+                 href   = "https://plotly.com/r/",
                  target = "_blank", style = "color: #7b2d8b;"),
           " \u2014 interactive charts"
         ),
         tags$li(
           tags$a("geosphere",
-                 href = "https://cran.r-project.org/package=geosphere",
+                 href   = "https://cran.r-project.org/package=geosphere",
                  target = "_blank", style = "color: #7b2d8b;"),
           " \u2014 great circle arcs"
         )
       ),
       
+      # ---- SOURCE CODE ----
       tags$h4("Source Code", style = "color: white; margin-top: 24px;"),
       tags$p(
-        tags$a("github.com/YOURUSERNAME/census-r-experiments",
-               href   = "https://github.com/YOURUSERNAME/census-r-experiments",
+        tags$a("github.com/brooksgroves/census-r-experiments",
+               href   = "https://github.com/brooksgroves/census-r-experiments",
                target = "_blank",
                style  = "color: #7b2d8b;"),
         style = "color: #cccccc;"
-      )
+      ),
+      
+      # ---- ACKNOWLEDGEMENTS ----
+      tags$h4("Acknowledgements", style = "color: white; margin-top: 24px;"),
+      tags$p(
+        "Data quality insights from ",
+        tags$a("@leafyoreo",
+               href   = "https://twitter.com/leafyoreo",
+               target = "_blank",
+               style  = "color: #7b2d8b;"),
+        " on X/Twitter, who correctly noted that small ACS migration",
+        "flows may represent just one or two survey respondents",
+        "and that zero values can reflect sample gaps rather than",
+        "true absence of migration. That's good Census literacy.",
+        style = "color: #aaaaaa; font-size: 0.9em;"
+      ),
+      
+      tags$br(),
+      tags$br()
     )
   )
   
